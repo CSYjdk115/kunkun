@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Pencil, Trash2, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useRecords } from '../hooks/useRecords';
 import { useCategories } from '../hooks/useCategories';
 import MonthPicker from '../components/MonthPicker';
@@ -19,7 +19,6 @@ export default function BillsPage() {
 
   const allCategories = [...expenseCategories, ...incomeCategories];
 
-  // Group by date
   const grouped = useMemo(() => {
     const map = {};
     records.forEach(r => {
@@ -29,7 +28,6 @@ export default function BillsPage() {
     return Object.entries(map).sort((a, b) => b[0].localeCompare(a[0]));
   }, [records]);
 
-  // Monthly totals
   const { totalExpense, totalIncome } = useMemo(() => {
     let e = 0, i = 0;
     records.forEach(r => {
@@ -54,53 +52,61 @@ export default function BillsPage() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('确认删除这条记录？')) {
+    if (window.confirm('确认删除这条记录吗，小猪猪？🐷')) {
       await remove(id);
     }
   };
 
   if (!ready) {
-    return <div className="p-8 text-center text-gray-400">加载中...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3">
+        <span className="text-5xl animate-bounce">🐷</span>
+        <span className="text-sm text-pink-400">加载中...</span>
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col h-full">
       <MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
 
-      {/* Summary */}
-      <div className="flex gap-3 px-4 mb-3">
-        <div className="flex-1 bg-white rounded-xl p-3 text-center shadow-sm">
-          <div className="text-xs text-gray-400 mb-1">支出</div>
-          <div className="text-lg font-bold text-red-500">¥{formatAmount(totalExpense)}</div>
+      {/* Summary cards */}
+      <div className="flex gap-2 px-3 mb-3">
+        <div className="flex-1 bg-white/70 backdrop-blur rounded-2xl p-3 text-center shadow-sm">
+          <div className="text-[10px] text-pink-400 mb-1 font-medium">💸 支出</div>
+          <div className="text-base font-bold text-rose-400">¥{formatAmount(totalExpense)}</div>
         </div>
-        <div className="flex-1 bg-white rounded-xl p-3 text-center shadow-sm">
-          <div className="text-xs text-gray-400 mb-1">收入</div>
-          <div className="text-lg font-bold text-emerald-500">¥{formatAmount(totalIncome)}</div>
+        <div className="flex-1 bg-white/70 backdrop-blur rounded-2xl p-3 text-center shadow-sm">
+          <div className="text-[10px] text-pink-400 mb-1 font-medium">💰 收入</div>
+          <div className="text-base font-bold text-emerald-500">¥{formatAmount(totalIncome)}</div>
         </div>
-        <div className="flex-1 bg-white rounded-xl p-3 text-center shadow-sm">
-          <div className="text-xs text-gray-400 mb-1">结余</div>
-          <div className={`text-lg font-bold ${totalIncome - totalExpense >= 0 ? 'text-gray-800' : 'text-red-500'}`}>
+        <div className="flex-1 bg-white/70 backdrop-blur rounded-2xl p-3 text-center shadow-sm">
+          <div className="text-[10px] text-pink-400 mb-1 font-medium">🐷 结余</div>
+          <div className={`text-base font-bold ${totalIncome - totalExpense >= 0 ? 'text-pink-600' : 'text-rose-400'}`}>
             ¥{formatAmount(totalIncome - totalExpense)}
           </div>
         </div>
       </div>
 
-      {/* List */}
-      <div className="flex-1 overflow-y-auto px-4">
+      {/* Records list */}
+      <div className="flex-1 overflow-y-auto px-3">
         {grouped.length === 0 ? (
-          <div className="text-center text-gray-400 py-16">
-            <div className="text-4xl mb-3">📝</div>
-            <div className="text-sm">暂无记录</div>
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <span className="text-5xl float">🐷</span>
+            <span className="text-sm text-pink-300">这个月还没有记录哦~</span>
           </div>
         ) : (
           grouped.map(([date, items]) => {
-            const dayTotal = items.reduce((s, r) => s + (r.type === 'expense' ? -r.amount : r.amount), 0);
+            const dayExpense = items.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
+            const dayIncome = items.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0);
             return (
               <div key={date} className="mb-3">
-                <div className="flex justify-between items-center mb-1 px-1">
-                  <span className="text-xs text-gray-500">{formatDate(date)}</span>
-                  <span className={`text-xs font-medium ${dayTotal >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    ¥{formatAmount(Math.abs(dayTotal))}
+                <div className="flex justify-between items-center mb-1.5 px-1">
+                  <span className="text-xs text-pink-400 font-medium">{formatDate(date)}</span>
+                  <span className="text-xs text-gray-500">
+                    {dayExpense > 0 && <span className="text-rose-400">支出 ¥{formatAmount(dayExpense)}</span>}
+                    {dayExpense > 0 && dayIncome > 0 && ' · '}
+                    {dayIncome > 0 && <span className="text-emerald-500">收入 ¥{formatAmount(dayIncome)}</span>}
                   </span>
                 </div>
                 {items.map(r => (
@@ -120,36 +126,40 @@ export default function BillsPage() {
 
       {/* Edit Modal */}
       {editing && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center" onClick={() => setEditing(null)}>
-          <div className="bg-white rounded-t-2xl p-5 w-full max-w-[480px] slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-end justify-center" onClick={() => setEditing(null)}>
+          <div className="bg-white rounded-t-3xl p-5 w-full max-w-[480px] slide-up shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-medium text-gray-800">编辑记录</h3>
-              <button onClick={() => setEditing(null)}><X size={18} className="text-gray-400" /></button>
+              <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                <span>🐷</span> 编辑记录
+              </h3>
+              <button onClick={() => setEditing(null)} className="p-1.5 hover:bg-pink-50 rounded-full transition-colors">
+                <X size={18} className="text-gray-400" />
+              </button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-500 block mb-1">金额</label>
+                <label className="text-xs text-pink-400 font-medium block mb-1.5">金额</label>
                 <input
                   type="number"
                   value={editAmount}
                   onChange={e => setEditAmount(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:border-indigo-400"
+                  className="w-full border border-pink-100 rounded-xl p-2.5 text-sm outline-none focus:border-pink-400 transition-colors bg-pink-50/50"
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-500 block mb-1">备注</label>
+                <label className="text-xs text-pink-400 font-medium block mb-1.5">备注</label>
                 <input
                   type="text"
                   value={editNote}
                   onChange={e => setEditNote(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:border-indigo-400"
+                  className="w-full border border-pink-100 rounded-xl p-2.5 text-sm outline-none focus:border-pink-400 transition-colors bg-pink-50/50"
                 />
               </div>
               <button
                 onClick={handleSaveEdit}
-                className="w-full py-3 bg-indigo-500 text-white rounded-xl font-medium text-sm"
+                className="w-full py-3.5 bg-pink-400 text-white rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all shadow-lg shadow-pink-200"
               >
-                保存
+                保存修改
               </button>
             </div>
           </div>

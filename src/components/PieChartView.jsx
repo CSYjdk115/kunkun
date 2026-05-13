@@ -3,8 +3,9 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 export default function PieChartView({ data }) {
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-48 text-gray-400 text-sm">
-        暂无数据
+      <div className="flex flex-col items-center justify-center h-48 gap-2">
+        <span className="text-4xl">🐷</span>
+        <span className="text-sm text-pink-300">暂无支出数据</span>
       </div>
     );
   }
@@ -26,7 +27,12 @@ export default function PieChartView({ data }) {
           ))}
         </Pie>
         <Tooltip
-          contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
+          contentStyle={{
+            borderRadius: 16,
+            border: 'none',
+            boxShadow: '0 4px 20px rgba(244,114,182,0.15)',
+            fontSize: 13,
+          }}
           formatter={(v) => `¥${Number(v).toFixed(2)}`}
         />
       </PieChart>

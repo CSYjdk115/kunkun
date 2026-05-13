@@ -14,7 +14,7 @@ export default defineConfig({
         name: '记账',
         short_name: '记账',
         description: '简单好用的记账应用',
-        theme_color: '#6366f1',
+        theme_color: '#f472b6',
         background_color: '#f8fafc',
         display: 'standalone',
         start_url: '/kunkun/',

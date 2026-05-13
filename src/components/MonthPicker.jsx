@@ -12,14 +12,20 @@ export default function MonthPicker({ year, month, onChange }) {
   };
 
   return (
-    <div className="flex items-center justify-center gap-3 py-3">
-      <button onClick={prev} className="p-1 text-gray-500 hover:text-gray-700">
+    <div className="flex items-center justify-center gap-4 py-3">
+      <button
+        onClick={prev}
+        className="p-2 text-pink-400 hover:text-pink-600 hover:bg-pink-50 rounded-full transition-all active:scale-90"
+      >
         <ChevronLeft size={20} />
       </button>
-      <span className="text-sm font-medium text-gray-700 w-28 text-center">
+      <span className="text-sm font-semibold text-gray-700 w-28 text-center">
         {formatMonth(`${year}-${String(month + 1).padStart(2, '0')}-01`)}
       </span>
-      <button onClick={next} className="p-1 text-gray-500 hover:text-gray-700">
+      <button
+        onClick={next}
+        className="p-2 text-pink-400 hover:text-pink-600 hover:bg-pink-50 rounded-full transition-all active:scale-90"
+      >
         <ChevronRight size={20} />
       </button>
     </div>

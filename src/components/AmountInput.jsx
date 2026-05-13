@@ -1,4 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
+function computeDisplay(current, key) {
+  if (key === 'del') return current.slice(0, -1) || '';
+  if (key === '.') {
+    if (current.includes('.')) return current;
+    return current + '.';
+  }
+  // digit
+  if (current.includes('.')) {
+    const parts = current.split('.');
+    if (parts[1].length >= 2) return current;
+    return current + key;
+  }
+  if (current === '0') return key;
+  if (current === '') return key;
+  return current + key;
+}
 
 export default function AmountInput({ value, onChange }) {
   const [display, setDisplay] = useState(() => value ? String(value) : '');
@@ -7,23 +24,15 @@ export default function AmountInput({ value, onChange }) {
     if (!value) setDisplay('');
   }, [value]);
 
-  const handleInput = (char) => {
-    if (char === '.') {
-      if (display.includes('.')) return;
-      setDisplay(d => d + '.');
-    } else if (char === 'del') {
-      setDisplay(d => d.slice(0, -1));
-    } else {
-      if (display.includes('.') && display.split('.')[1].length >= 2) return;
-      if (display === '0' && char !== '.') setDisplay(char);
-      else setDisplay(d => d + char);
-    }
-  };
-
-  const submitDisplay = (str) => {
-    const v = parseFloat(str);
-    if (!isNaN(v) && v > 0) onChange(v);
-  };
+  const handlePress = useCallback((key) => {
+    setDisplay(prev => {
+      const next = computeDisplay(prev, key);
+      const v = parseFloat(next);
+      if (!isNaN(v) && v > 0) onChange(v);
+      else if (next === '' || next === '0') onChange(null);
+      return next;
+    });
+  }, [onChange]);
 
   const buttons = [
     ['1', '2', '3'],
@@ -35,8 +44,8 @@ export default function AmountInput({ value, onChange }) {
   return (
     <div>
       <div className="text-center py-4">
-        <span className="text-4xl font-bold text-gray-800">
-          {display || '0'}
+        <span className="text-4xl font-bold text-pink-600">
+          ¥{display || '0'}
         </span>
       </div>
       <div className="grid grid-cols-3 gap-2 px-2">
@@ -46,14 +55,12 @@ export default function AmountInput({ value, onChange }) {
             type="button"
             onPointerDown={(e) => {
               e.preventDefault();
-              const newDisplay = key === 'del' ? display.slice(0, -1) : display + key;
-              handleInput(key);
-              submitDisplay(newDisplay);
+              handlePress(key);
             }}
-            className={`h-12 rounded-xl text-lg font-medium transition-colors active:scale-95 ${
+            className={`h-12 rounded-2xl text-lg font-medium transition-all active:scale-90 select-none ${
               key === 'del'
-                ? 'bg-gray-100 text-gray-500 text-sm'
-                : 'bg-white border border-gray-100 text-gray-700 shadow-sm hover:bg-gray-50'
+                ? 'bg-pink-50 text-pink-400 text-sm'
+                : 'bg-white border border-pink-100 text-gray-700 shadow-sm hover:bg-pink-50/50'
             }`}
           >
             {key === 'del' ? '⌫' : key}

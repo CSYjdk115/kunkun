@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import { format } from 'date-fns';
-import { PiggyBank, Target } from 'lucide-react';
+import { PiggyBank, Target, X } from 'lucide-react';
 import { useBudgets } from '../hooks/useBudgets';
 import { useRecords } from '../hooks/useRecords';
 import { useCategories } from '../hooks/useCategories';
@@ -22,7 +21,6 @@ export default function BudgetPage() {
 
   const monthBudgets = getByMonth(monthKey);
 
-  // Spending by category
   const spendingByCat = useMemo(() => {
     const map = {};
     records.filter(r => r.type === 'expense').forEach(r => {
@@ -50,48 +48,49 @@ export default function BudgetPage() {
     <div className="flex flex-col h-full">
       <MonthPicker year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
 
-      <div className="flex-1 overflow-y-auto px-4">
-        {/* Summary */}
-        <div className="bg-white rounded-xl p-4 shadow-sm mb-3">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-              <PiggyBank size={16} className="text-indigo-500" />
+      <div className="flex-1 overflow-y-auto px-3">
+        {/* Total budget card */}
+        <div className="bg-white/70 backdrop-blur rounded-2xl p-4 shadow-sm mb-3">
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="w-9 h-9 bg-pink-100 rounded-full flex items-center justify-center">
+              <PiggyBank size={17} className="text-pink-500" />
             </div>
-            <span className="text-sm font-medium text-gray-700">月度总预算</span>
+            <span className="text-sm font-semibold text-gray-700">🐷 月度总预算</span>
           </div>
           {totalBudget ? (
             <BudgetBar spent={totalSpent} budget={totalBudget.amount} label="总支出" />
           ) : (
-            <p className="text-xs text-gray-400 mb-2">未设置总预算</p>
+            <p className="text-xs text-pink-300 mb-2">还没有设置总预算哦~</p>
           )}
           <button
             onClick={() => openEditor(null, totalBudget?.amount)}
-            className="text-xs text-indigo-500 font-medium"
+            className="text-xs text-pink-500 font-semibold hover:text-pink-600 transition-colors"
           >
-            {totalBudget ? '修改总预算' : '设置总预算'}
+            {totalBudget ? '✏️ 修改总预算' : '➕ 设置总预算'}
           </button>
         </div>
 
-        {/* Category budget */}
-        <div className="bg-white rounded-xl p-4 shadow-sm mb-3">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-              <Target size={16} className="text-amber-500" />
+        {/* Category budgets */}
+        <div className="bg-white/70 backdrop-blur rounded-2xl p-4 shadow-sm mb-3">
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center">
+              <Target size={17} className="text-amber-500" />
             </div>
-            <span className="text-sm font-medium text-gray-700">分类预算</span>
+            <span className="text-sm font-semibold text-gray-700">🎯 分类预算</span>
           </div>
           {expenseCategories.map(cat => {
             const budget = monthBudgets.find(b => b.categoryId === cat.id);
             const spent = spendingByCat[cat.id] || 0;
             return (
-              <div key={cat.id} onClick={() => openEditor(cat.id, budget?.amount)} className="cursor-pointer">
+              <div key={cat.id} onClick={() => openEditor(cat.id, budget?.amount)} className="cursor-pointer group">
                 {budget ? (
                   <BudgetBar spent={spent} budget={budget.amount} label={cat.name} />
                 ) : (
-                  <div className="flex justify-between text-xs mb-3">
-                    <span className="text-gray-600">{cat.name}</span>
-                    <span className={`font-medium ${spent > 0 ? 'text-red-500' : 'text-gray-400'}`}>
-                      已花 ¥{spent.toFixed(0)} · <span className="text-indigo-400">设置预算</span>
+                  <div className="flex justify-between items-center text-xs mb-3 py-1 group-hover:bg-pink-50/50 rounded-lg px-2 transition-colors -mx-2">
+                    <span className="text-gray-600 font-medium">{cat.name}</span>
+                    <span className={spent > 0 ? 'text-rose-400' : 'text-gray-400'}>
+                      {spent > 0 ? `已花 ¥${spent.toFixed(0)} · ` : ''}
+                      <span className="text-pink-400 font-medium">设置预算</span>
                     </span>
                   </div>
                 )}
@@ -103,27 +102,33 @@ export default function BudgetPage() {
 
       {/* Budget editor modal */}
       {showEditor && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center" onClick={() => setShowEditor(false)}>
-          <div className="bg-white rounded-t-2xl p-5 w-full max-w-[480px] slide-up" onClick={e => e.stopPropagation()}>
-            <h3 className="font-medium text-gray-800 mb-4">
-              {editingBudget.categoryId === null ? '设置总预算' : '设置分类预算'}
-            </h3>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-gray-400">¥</span>
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-end justify-center" onClick={() => setShowEditor(false)}>
+          <div className="bg-white rounded-t-3xl p-5 w-full max-w-[480px] slide-up shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                <span>🐷</span>
+                {editingBudget.categoryId === null ? '设置总预算' : '设置分类预算'}
+              </h3>
+              <button onClick={() => setShowEditor(false)} className="p-1.5 hover:bg-pink-50 rounded-full transition-colors">
+                <X size={18} className="text-gray-400" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2 mb-4 bg-pink-50/50 rounded-xl px-3 py-2">
+              <span className="text-pink-400 font-bold text-lg">¥</span>
               <input
                 type="number"
                 value={editingBudget.amount}
                 onChange={e => setEditingBudget({ ...editingBudget, amount: e.target.value })}
                 placeholder="输入预算金额"
-                className="flex-1 text-2xl font-bold outline-none"
+                className="flex-1 text-xl font-bold outline-none bg-transparent text-gray-800 placeholder-pink-200"
                 autoFocus
               />
             </div>
             <button
               onClick={saveBudget}
-              className="w-full py-3 bg-indigo-500 text-white rounded-xl font-medium text-sm"
+              className="w-full py-3.5 bg-pink-400 text-white rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all shadow-lg shadow-pink-200"
             >
-              保存
+              保存预算
             </button>
           </div>
         </div>
