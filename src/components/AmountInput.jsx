@@ -43,12 +43,12 @@ export default function AmountInput({ value, onChange }) {
 
   return (
     <div>
-      <div className="text-center py-4">
-        <span className="text-4xl font-bold text-pink-600">
+      <div className="text-center py-2">
+        <span className="text-3xl font-bold text-pink-600">
           ¥{display || '0'}
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-2 px-2">
+      <div className="grid grid-cols-3 gap-1.5 px-3 pb-2">
         {buttons.flat().map((key) => (
           <button
             key={key}
@@ -57,9 +57,9 @@ export default function AmountInput({ value, onChange }) {
               e.preventDefault();
               handlePress(key);
             }}
-            className={`h-12 rounded-2xl text-lg font-medium transition-all active:scale-90 select-none ${
+            className={`h-9 rounded-xl text-base font-medium transition-all active:scale-90 select-none ${
               key === 'del'
-                ? 'bg-pink-50 text-pink-400 text-sm'
+                ? 'bg-pink-50 text-pink-400 text-xs'
                 : 'bg-white border border-pink-100 text-gray-700 shadow-sm hover:bg-pink-50/50'
             }`}
           >

@@ -33,74 +33,66 @@ export default function RecordPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="text-center pt-4 pb-1">
-        <span className="text-3xl float inline-block">🐷</span>
-        <h1 className="text-xs text-pink-400 font-medium mt-0.5">今天也要记账哦~</h1>
-      </div>
-
       {/* Type toggle */}
-      <div className="flex bg-white/60 backdrop-blur mx-3 rounded-2xl p-1 gap-1">
+      <div className="flex bg-white/60 backdrop-blur mx-3 mt-3 rounded-xl p-1 gap-1 shrink-0">
         <button
           onClick={() => { setType('expense'); setCategoryId(null); }}
-          className={`flex-1 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 active:scale-95 ${
+          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all duration-200 active:scale-95 ${
             type === 'expense'
-              ? 'bg-rose-400 text-white shadow-md shadow-rose-200'
+              ? 'bg-rose-400 text-white shadow-sm'
               : 'text-gray-400 hover:text-rose-400'
           }`}
         >💸 支出</button>
         <button
           onClick={() => { setType('income'); setCategoryId(null); }}
-          className={`flex-1 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 active:scale-95 ${
+          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all duration-200 active:scale-95 ${
             type === 'income'
-              ? 'bg-emerald-400 text-white shadow-md shadow-emerald-200'
+              ? 'bg-emerald-400 text-white shadow-sm'
               : 'text-gray-400 hover:text-emerald-400'
           }`}
         >💰 收入</button>
       </div>
 
-      {/* Amount input */}
-      <div className="bg-white/60 backdrop-blur mx-3 mt-3 rounded-2xl">
+      {/* Amount input - compact numpad */}
+      <div className="bg-white/60 backdrop-blur mx-3 mt-2 rounded-xl shrink-0">
         <AmountInput value={amount} onChange={setAmount} />
       </div>
 
-      {/* Category picker */}
-      <div className="flex-1 overflow-y-auto py-3 mx-3 mt-3 bg-white/60 backdrop-blur rounded-2xl">
-        <div className="text-xs text-pink-400 font-medium mb-3 px-3">
+      {/* Date & note - compact single row */}
+      <div className="flex items-center gap-2 mx-3 mt-2 shrink-0">
+        <input
+          type="date"
+          value={date}
+          onChange={e => setDate(e.target.value)}
+          className="text-xs text-gray-600 border-none outline-none bg-white/60 backdrop-blur rounded-xl px-3 py-2 min-w-0 w-28"
+        />
+        <input
+          type="text"
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          placeholder="备注"
+          className="text-xs text-gray-600 border-none outline-none bg-white/60 backdrop-blur rounded-xl px-3 py-2 flex-1 min-w-0 placeholder-gray-300"
+        />
+      </div>
+
+      {/* Category picker - gets all remaining space */}
+      <div className="flex-1 overflow-y-auto mx-3 mt-2 bg-white/60 backdrop-blur rounded-xl py-2 min-h-0">
+        <div className="text-[10px] text-pink-400 font-medium mb-2 px-3">
           {type === 'expense' ? '🐽 选择支出分类' : '🐽 选择收入分类'}
         </div>
         <CategoryPicker categories={categories} selected={categoryId} onSelect={setCategoryId} />
       </div>
 
-      {/* Date, note, save */}
-      <div className="bg-white/80 backdrop-blur mx-3 mt-3 mb-3 rounded-2xl p-4 space-y-3 shadow-sm">
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-pink-400 w-10 font-medium">📅 日期</span>
-          <input
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            className="text-sm text-gray-700 border-none outline-none bg-transparent flex-1"
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-pink-400 w-10 font-medium">📝 备注</span>
-          <input
-            type="text"
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            placeholder="吃吃喝喝..."
-            className="text-sm text-gray-700 border-none outline-none bg-transparent flex-1 placeholder-gray-300"
-          />
-        </div>
+      {/* Save button - compact */}
+      <div className="mx-3 mt-2 mb-3 shrink-0">
         <button
           onClick={handleSave}
           disabled={!canSave}
-          className={`w-full py-3.5 rounded-2xl font-semibold text-sm transition-all active:scale-[0.97] ${
+          className={`w-full py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.97] ${
             canSave
               ? type === 'expense'
-                ? 'bg-rose-400 text-white shadow-lg shadow-rose-200 hover:bg-rose-500'
-                : 'bg-emerald-400 text-white shadow-lg shadow-emerald-200 hover:bg-emerald-500'
+                ? 'bg-rose-400 text-white shadow-lg shadow-rose-200'
+                : 'bg-emerald-400 text-white shadow-lg shadow-emerald-200'
               : 'bg-pink-100 text-pink-300'
           }`}
         >
