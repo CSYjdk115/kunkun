@@ -83,6 +83,10 @@ export async function deleteCategory(id) {
 
 // ── Records ──
 
+function mapRecord(db) {
+  return { id: db.id, type: db.type, amount: Number(db.amount), categoryId: db.category_id, date: db.date, note: db.note, createdAt: db.created_at };
+}
+
 export async function fetchRecords(year, month, type) {
   let q = supabase.from('records').select('*').eq('family_id', familyId())
   if (year !== undefined && month !== undefined) {
@@ -90,34 +94,50 @@ export async function fetchRecords(year, month, type) {
     q = q.like('date', `${prefix}%`)
   }
   if (type) q = q.eq('type', type)
-  const { data } = await q.order('date', { ascending: false }).order('created_at', { ascending: false })
-  return data || []
+  const { data, error } = await q.order('date', { ascending: false }).order('created_at', { ascending: false })
+  if (error) { console.error('fetchRecords error:', error); return []; }
+  return (data || []).map(mapRecord)
 }
 
 export async function fetchAllRecords() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('records')
     .select('*')
     .eq('family_id', familyId())
     .order('date', { ascending: false })
-  return data || []
+  if (error) { console.error('fetchAllRecords error:', error); return []; }
+  return (data || []).map(mapRecord)
 }
 
 export async function addRecord(record) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('records')
-    .insert({ ...record, family_id: familyId() })
+    .insert({
+      type: record.type,
+      amount: record.amount,
+      category_id: record.categoryId,
+      date: record.date,
+      note: record.note || '',
+      family_id: familyId()
+    })
     .select('*')
     .single()
-  return data
+  if (error) throw error
+  return mapRecord(data)
 }
 
 export async function updateRecord(id, changes) {
-  await supabase.from('records').update(changes).eq('id', id).eq('family_id', familyId())
+  const payload = {}
+  if (changes.amount !== undefined) payload.amount = changes.amount
+  if (changes.note !== undefined) payload.note = changes.note
+  if (changes.categoryId !== undefined) payload.category_id = changes.categoryId
+  const { error } = await supabase.from('records').update(payload).eq('id', id).eq('family_id', familyId())
+  if (error) throw error
 }
 
 export async function deleteRecord(id) {
-  await supabase.from('records').delete().eq('id', id).eq('family_id', familyId())
+  const { error } = await supabase.from('records').delete().eq('id', id).eq('family_id', familyId())
+  if (error) throw error
 }
 
 // ── Budgets ──

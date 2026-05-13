@@ -14,6 +14,7 @@ export default function RecordPage() {
   const [date, setDate] = useState(today);
   const [note, setNote] = useState('');
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
 
   const { expenseCategories, incomeCategories } = useCategories();
   const { add } = useRecords();
@@ -22,19 +23,29 @@ export default function RecordPage() {
 
   const handleSave = useCallback(async () => {
     if (!amount || amount <= 0 || !categoryId) return;
-    await add({ type, amount, categoryId, date, note: note.trim() });
-    setAmount(null);
-    setNote('');
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+    setError('');
+    try {
+      await add({ type, amount, categoryId, date, note: note.trim() });
+      setAmount(null);
+      setNote('');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    } catch (err) {
+      setError('保存失败: ' + err.message);
+    }
   }, [amount, categoryId, type, date, note, add]);
 
   const canSave = amount && amount > 0 && categoryId;
 
   return (
     <div className="flex flex-col h-full">
+      {/* Pig header - small */}
+      <div className="text-center pt-2 pb-1 shrink-0">
+        <span className="text-xl">🐷</span>
+      </div>
+
       {/* Type toggle */}
-      <div className="flex bg-white/60 backdrop-blur mx-3 mt-3 rounded-xl p-1 gap-1 shrink-0">
+      <div className="flex bg-white/60 backdrop-blur mx-3 rounded-xl p-1 gap-1 shrink-0">
         <button
           onClick={() => { setType('expense'); setCategoryId(null); }}
           className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all duration-200 active:scale-95 ${
@@ -53,12 +64,12 @@ export default function RecordPage() {
         >💰 收入</button>
       </div>
 
-      {/* Amount input - compact numpad */}
+      {/* Amount input */}
       <div className="bg-white/60 backdrop-blur mx-3 mt-2 rounded-xl shrink-0">
         <AmountInput value={amount} onChange={setAmount} />
       </div>
 
-      {/* Date & note - compact single row */}
+      {/* Date & note */}
       <div className="flex items-center gap-2 mx-3 mt-2 shrink-0">
         <input
           type="date"
@@ -75,7 +86,7 @@ export default function RecordPage() {
         />
       </div>
 
-      {/* Category picker - gets all remaining space */}
+      {/* Category picker */}
       <div className="flex-1 overflow-y-auto mx-3 mt-2 bg-white/60 backdrop-blur rounded-xl py-2 min-h-0">
         <div className="text-[10px] text-pink-400 font-medium mb-2 px-3">
           {type === 'expense' ? '🐽 选择支出分类' : '🐽 选择收入分类'}
@@ -83,7 +94,12 @@ export default function RecordPage() {
         <CategoryPicker categories={categories} selected={categoryId} onSelect={setCategoryId} />
       </div>
 
-      {/* Save button - compact */}
+      {/* Error */}
+      {error && (
+        <div className="mx-3 mb-1 text-xs text-red-400 text-center">{error}</div>
+      )}
+
+      {/* Save button */}
       <div className="mx-3 mt-2 mb-3 shrink-0">
         <button
           onClick={handleSave}
