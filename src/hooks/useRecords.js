@@ -1,52 +1,55 @@
 import { useState, useEffect, useCallback } from 'react';
-import { db } from '../db/database';
+import { supabase, fetchRecords, fetchAllRecords, addRecord, updateRecord, deleteRecord } from '../db/supabase';
+import { getFamilyInfo } from '../db/supabase';
 
 export function useRecords({ year, month, type } = {}) {
   const [records, setRecords] = useState([]);
   const [ready, setReady] = useState(false);
+  const family = getFamilyInfo();
 
   const load = useCallback(async () => {
-    let query = db.records.orderBy('date').reverse();
-    let items = await query.toArray();
-
-    if (year !== undefined && month !== undefined) {
-      const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
-      items = items.filter(r => r.date.startsWith(prefix));
-    }
-    if (type) {
-      items = items.filter(r => r.type === type);
-    }
-
+    if (!family.id) { setReady(true); return; }
+    const items = await fetchRecords(year, month, type);
     setRecords(items);
     setReady(true);
-  }, [year, month, type]);
+  }, [family.id, year, month, type]);
 
   useEffect(() => { load(); }, [load]);
 
+  // Realtime
+  useEffect(() => {
+    if (!family.id) return;
+    const ch = supabase
+      .channel('records-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'records', filter: `family_id=eq.${family.id}` },
+        () => load()
+      )
+      .subscribe();
+    return () => supabase.removeChannel(ch);
+  }, [family.id, load]);
+
   const add = async (record) => {
-    const id = await db.records.add({ ...record, createdAt: Date.now() });
+    await addRecord(record);
     await load();
-    return id;
   };
 
   const update = async (id, data) => {
-    await db.records.update(id, data);
+    await updateRecord(id, data);
     await load();
   };
 
   const remove = async (id) => {
-    await db.records.delete(id);
+    await deleteRecord(id);
     await load();
   };
 
   const getByMonth = useCallback(async (y, m) => {
-    const prefix = `${y}-${String(m + 1).padStart(2, '0')}`;
-    const all = await db.records.orderBy('date').reverse().toArray();
-    return all.filter(r => r.date.startsWith(prefix));
+    return await fetchRecords(y, m);
   }, []);
 
   const getAllRecords = useCallback(async () => {
-    return await db.records.orderBy('date').reverse().toArray();
+    return await fetchAllRecords();
   }, []);
 
   return { records, ready, add, update, remove, getByMonth, getAllRecords, reload: load };

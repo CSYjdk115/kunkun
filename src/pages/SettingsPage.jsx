@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { Download, Upload, Plus, Pencil, Trash2, X, FolderOpen } from 'lucide-react';
+import { Download, Upload, Plus, Pencil, Trash2, X, FolderOpen, Copy, LogOut } from 'lucide-react';
 import { useCategories } from '../hooks/useCategories';
 import { useRecords } from '../hooks/useRecords';
 import { exportToExcel, exportToCSV, importFromExcel } from '../utils/export';
-import { db } from '../db/database';
+import { addRecord, getFamilyInfo, leaveFamily } from '../db/supabase';
 
-export default function SettingsPage() {
+export default function SettingsPage({ onLeave }) {
+  const family = getFamilyInfo();
   const { categories, expenseCategories, incomeCategories, add, update, remove, reload } = useCategories();
   const { getAllRecords } = useRecords();
   const [editingCat, setEditingCat] = useState(null);
@@ -42,13 +43,12 @@ export default function SettingsPage() {
           });
           catMap[row.categoryName] = catId;
         }
-        await db.records.add({
+        await addRecord({
           type: row.type,
           amount: row.amount,
           categoryId: catId,
           date: row.date,
           note: row.note,
-          createdAt: Date.now(),
         });
       }
       await reload();
@@ -70,6 +70,29 @@ export default function SettingsPage() {
       <div className="flex items-center gap-2 mb-1">
         <span className="text-2xl">🐷</span>
         <h2 className="text-base font-bold text-pink-500">设置</h2>
+      </div>
+
+      {/* Family */}
+      <div className="bg-white/70 backdrop-blur rounded-2xl p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">👨‍👩‍👧 家庭共享</h3>
+        <div className="flex items-center justify-between bg-pink-50 rounded-xl px-4 py-3">
+          <div>
+            <div className="text-[10px] text-pink-400 mb-0.5">家庭码</div>
+            <div className="text-lg font-bold tracking-[0.2em] text-pink-500">{family.code}</div>
+          </div>
+          <button
+            onClick={() => { navigator.clipboard.writeText(family.code); }}
+            className="flex items-center gap-1 text-xs text-pink-400 font-medium active:scale-95 transition-all"
+          >
+            <Copy size={12} /> 复制
+          </button>
+        </div>
+        <button
+          onClick={() => { if (window.confirm('确定退出家庭？退出后将无法查看共享数据。')) { leaveFamily(); onLeave(); } }}
+          className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-rose-50 text-rose-400 rounded-xl text-xs font-semibold mt-2 active:scale-95 transition-all"
+        >
+          <LogOut size={12} /> 退出家庭
+        </button>
       </div>
 
       {/* Data management */}

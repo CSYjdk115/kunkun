@@ -1,26 +1,36 @@
 import { useState, useEffect, useCallback } from 'react';
-import { db } from '../db/database';
+import { supabase, fetchBudgets, saveBudget } from '../db/supabase';
+import { getFamilyInfo } from '../db/supabase';
 
 export function useBudgets() {
   const [budgets, setBudgets] = useState([]);
   const [ready, setReady] = useState(false);
+  const family = getFamilyInfo();
 
   const load = useCallback(async () => {
-    const all = await db.budgets.toArray();
+    if (!family.id) { setReady(true); return; }
+    const all = await fetchBudgets();
     setBudgets(all);
     setReady(true);
-  }, []);
+  }, [family.id]);
 
   useEffect(() => { load(); }, [load]);
 
+  // Realtime
+  useEffect(() => {
+    if (!family.id) return;
+    const ch = supabase
+      .channel('budgets-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'budgets', filter: `family_id=eq.${family.id}` },
+        () => load()
+      )
+      .subscribe();
+    return () => supabase.removeChannel(ch);
+  }, [family.id, load]);
+
   const setBudget = async (month, categoryId, amount) => {
-    const existing = await db.budgets.where({ month, categoryId }).first();
-    if (existing) {
-      if (amount > 0) await db.budgets.update(existing.id, { amount });
-      else await db.budgets.delete(existing.id);
-    } else if (amount > 0) {
-      await db.budgets.add({ month, categoryId, amount });
-    }
+    await saveBudget(month, categoryId, amount);
     await load();
   };
 
