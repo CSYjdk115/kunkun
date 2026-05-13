@@ -22,8 +22,27 @@ const defaultCategories = [
   { name: '奖金', type: 'income', icon: 'Gift', color: '#10b981' },
   { name: '兼职', type: 'income', icon: 'Laptop', color: '#06b6d4' },
   { name: '理财', type: 'income', icon: 'TrendingUp', color: '#84cc16' },
+  { name: '闲鱼', type: 'income', icon: 'ShoppingBag', color: '#f59e0b' },
+  { name: '陪玩', type: 'income', icon: 'Gamepad2', color: '#a855f7' },
   { name: '其他收入', type: 'income', icon: 'Ellipsis', color: '#64748b' },
 ];
+
+db.version(2).stores({
+  categories: '++id, type',
+  records: '++id, type, categoryId, date',
+  budgets: '++id, month, categoryId',
+}).upgrade(async (tx) => {
+  const existingNames = (await tx.table('categories').toArray()).map(c => c.name);
+  const newCats = [
+    { name: '闲鱼', type: 'income', icon: 'ShoppingBag', color: '#f59e0b' },
+    { name: '陪玩', type: 'income', icon: 'Gamepad2', color: '#a855f7' },
+  ];
+  for (const cat of newCats) {
+    if (!existingNames.includes(cat.name)) {
+      await tx.table('categories').add(cat);
+    }
+  }
+});
 
 export async function initDB() {
   const count = await db.categories.count();
