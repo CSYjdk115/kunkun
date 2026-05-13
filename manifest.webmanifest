@@ -1,1 +1,1 @@
-{"name":"记账","short_name":"记账","description":"简单好用的记账应用","start_url":"/kunkun/","display":"standalone","background_color":"#f8fafc","theme_color":"#6366f1","lang":"en","scope":"/kunkun/","icons":[{"src":"/kunkun/favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{"name":"记账","short_name":"记账","description":"简单好用的记账应用","start_url":"/kunkun/","display":"standalone","background_color":"#f8fafc","theme_color":"#f472b6","lang":"en","scope":"/kunkun/","icons":[{"src":"/kunkun/favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
